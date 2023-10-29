@@ -1,61 +1,55 @@
 const express = require("express");
+const mongoose = require("mongoose");
+const bodyParser = require('body-parser')
+
+const cors = require("cors");
+
+//Import routes
+const userRoutes = require("./routes/user");
+const productRoutes = require("./routes/product");
+const orderRoutes =  require("./routes/order")
+const productAddOnRoutes = require("./routes/productAddOn");
+
+//Servers setup
 const app = express();
-const port = process.env.PORT || 3001;
+const port = 4000;
+//const port = 4006;
 
-app.get("/", (req, res) => res.type('html').send(html));
+//Middlewares
+app.use(cors());
+app.use(express.static('public'));
+app.use(bodyParser.json({ limit: "30mb", extended: true }));
+app.use(bodyParser.urlencoded({ limit: "30mb", extended: true }));
 
-const server = app.listen(port, () => console.log(`Example app listening on port ${port}!`));
+//db connection
+/* local db connection url
+mongodb://localhost:27017/dbName
+*/
+mongoose.connect("mongodb+srv://bryanfilamor:P5KaVMwQioJbXbqF@b320-cluster.pmdx1mt.mongodb.net/eCommerceAPI?retryWrites=true&w=majority", {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+});
 
-server.keepAliveTimeout = 120 * 1000;
-server.headersTimeout = 120 * 1000;
+let db = mongoose.connection;
 
-const html = `
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>Hello from Render!</title>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
-    <script>
-      setTimeout(() => {
-        confetti({
-          particleCount: 100,
-          spread: 70,
-          origin: { y: 0.6 },
-          disableForReducedMotion: true
-        });
-      }, 500);
-    </script>
-    <style>
-      @import url("https://p.typekit.net/p.css?s=1&k=vnd5zic&ht=tk&f=39475.39476.39477.39478.39479.39480.39481.39482&a=18673890&app=typekit&e=css");
-      @font-face {
-        font-family: "neo-sans";
-        src: url("https://use.typekit.net/af/00ac0a/00000000000000003b9b2033/27/l?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n7&v=3") format("woff2"), url("https://use.typekit.net/af/00ac0a/00000000000000003b9b2033/27/d?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n7&v=3") format("woff"), url("https://use.typekit.net/af/00ac0a/00000000000000003b9b2033/27/a?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n7&v=3") format("opentype");
-        font-style: normal;
-        font-weight: 700;
-      }
-      html {
-        font-family: neo-sans;
-        font-weight: 700;
-        font-size: calc(62rem / 16);
-      }
-      body {
-        background: white;
-      }
-      section {
-        border-radius: 1em;
-        padding: 1em;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        margin-right: -50%;
-        transform: translate(-50%, -50%);
-      }
-    </style>
-  </head>
-  <body>
-    <section>
-      Hello from Render!
-    </section>
-  </body>
-</html>
-`
+db.on("error", console.error.bind(console, "connection error"));
+db.once("open", () => console.log("We're connected to the cloud database"));
+
+// Backend routes
+app.use("/users", userRoutes);
+app.use("/products", productRoutes);
+app.use("/addons", productAddOnRoutes);
+app.use("/orders", orderRoutes);
+/* app.use("/b6/users", userRoutes);
+app.use("/b6/products", productRoutes);
+app.use("/b6/addons", productAddOnRoutes);
+app.use("/b6/orders", orderRoutes); */
+
+
+
+//Server Start
+if(require.main === module) {
+    app.listen(port, () => console.log(`Server running at port ${port}`));
+}
+
+module.exports = app;
